@@ -49,6 +49,7 @@ import spack.mixins
 import spack.multimethod
 import spack.paths
 import spack.repo
+import spack.rewiring
 import spack.store
 import spack.url
 import spack.util.environment
@@ -1768,8 +1769,11 @@ class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin, object)):
         if dev_path_var:
             kwargs['keep_stage'] = True
 
-        builder = PackageInstaller([(self, kwargs)])
+        builder = PackageInstaller([(self.spec.build_spec.package
+                                     if self.spec.spliced else self, kwargs)])
         builder.install()
+        if self.spec.spliced:
+            rewiring.rewire(self.spec)
 
     def cache_extra_test_sources(self, srcs):
         """Copy relative source paths to the corresponding install test subdir

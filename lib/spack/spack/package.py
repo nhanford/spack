@@ -1773,7 +1773,7 @@ class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin, object)):
                                      if self.spec.spliced else self, kwargs)])
         builder.install()
         if self.spec.spliced:
-            rewiring.rewire(self.spec)
+            spack.rewiring.rewire(self.spec)
 
     def cache_extra_test_sources(self, srcs):
         """Copy relative source paths to the corresponding install test subdir

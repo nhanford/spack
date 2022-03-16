@@ -105,3 +105,28 @@ def test_rewire_writes_new_metadata(mock_fetch, install_mockery):
         assert os.path.exists(orig_specfile_path)
         assert not filecmp.cmp(orig_specfile_path, specfile_path,
                                shallow=False)
+
+
+@pytest.mark.parametrize('transitive', [True, False])
+def test_rewire_via_install(mock_fetch, install_mockery, transitive):
+    spec = Spec('splice-t^splice-h~foo').concretized()
+    dep = Spec('splice-h+foo').concretized()
+    spliced_spec = spec.splice(dep, transitive=transitive)
+    assert spec.dag_hash() != spliced_spec.dag_hash()
+    spliced_spec.package.do_install()
+
+    # check that the prefix exists
+    assert os.path.exists(spliced_spec.prefix)
+
+    # test that it made it into the database
+    rec = spack.store.db.get_record(spliced_spec)
+    installed_in_db = rec.installed if rec else False
+    assert installed_in_db
+
+    # check the file in the prefix has the correct paths
+    for node in spliced_spec.traverse(root=True):
+        text_file_path = os.path.join(node.prefix, node.name)
+        with open(text_file_path, 'r') as f:
+            text = f.read()
+            for modded_spec in node.traverse(root=True):
+                assert modded_spec.prefix in text

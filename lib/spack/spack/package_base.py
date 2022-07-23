@@ -552,6 +552,16 @@ class PackageViewMixin(object):
         view.remove_files(merge_map.values())
 
 
+class PackageABIMixin(object):
+    """Holds all defaults for ABI compatibility Package properties."""
+
+    #: Dependency types that are relevant to ABI and splicing compatibility.
+    abi_deptypes = ('link',)
+
+    #: ABI behaves as a compiled package. Items in tuple are ABI-relevant.
+    abi_arch = ('platform', 'os', 'target')
+
+
 def test_log_pathname(test_stage, spec):
     """Build the pathname of the test log file
 
@@ -566,7 +576,10 @@ def test_log_pathname(test_stage, spec):
                         'test-{0}-out.txt'.format(TestSuite.test_pkg_id(spec)))
 
 
-class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin, object)):
+class PackageBase(six.with_metaclass(PackageMeta,
+                                     PackageViewMixin,
+                                     PackageABIMixin,
+                                     object)):
     """This is the superclass for all spack packages.
 
     ***The Package class***

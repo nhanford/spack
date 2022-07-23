@@ -25,6 +25,9 @@ The available directives are:
   * ``resource``
   * ``variant``
   * ``version``
+  * ``abi_versions``
+  * ``abi_deptypes``
+  * ``abi_variants``
 
 """
 import functools
@@ -341,6 +344,13 @@ def version(ver, checksum=None, **kwargs):
                 msg += ")"
                 raise VersionLookupError(msg)
         pkg.versions[version] = kwargs
+        if 'abi' in kwargs:
+            if 'abi_base' in kwargs:
+                pass
+            else:
+                msg = "Attempted to set an abi base version without setting what"
+                msg += "changed in package {0}"
+                raise DirectiveError(llnl.util.tty.color.colorize(msg.format(pkg.name)))
     return _execute_version
 
 
@@ -725,6 +735,25 @@ def resource(**kwargs):
         fetcher = from_kwargs(**kwargs)
         resources.append(Resource(name, fetcher, destination, placement))
     return _execute_resource
+
+
+@directive('abi_deptypes')
+def abi_deptypes(abi_types):
+    """Define the dependency types that are known to matter for ABI
+    compatibility."""
+    def _execute_abi_deptypes(pkg):
+        pkg.abi_deptypes = abi_types
+    return _execute_abi_deptypes
+
+
+# @directive('abi_arch')
+# def abi_arch(abi_arch_tup):
+#     """Define the platform,os,arch tuple that matters for ABI compatibility. For
+#     example, a fully-interpreted package may care about none of these, or only
+#     the operating system."""
+#     def _execute_abi_arch(pkg):
+#         pkg.abi_arch = abi_arch_tup
+#     return _execute_abi_arch
 
 
 class DirectiveError(spack.error.SpackError):

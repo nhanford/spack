@@ -330,7 +330,13 @@ def version(ver, checksum=None, **kwargs):
                     "{0}: Checksums not allowed in no-code packages"
                     "(see '{1}' version).".format(pkg.name, ver))
 
-            kwargs['checksum'] = checksum
+        # Validate ABI components before storing anything
+        if 'abi' in kwargs and not ('abi_base' in kwargs or 'changed' in kwargs):
+            msg = "Missing description of abi constraints in package {0}.\n"
+            msg += "Did you mean to set abi='changed' and establish a new base?"
+            raise DirectiveError(llnl.util.tty.color.colorize(msg.format(pkg.name)))
+
+        kwargs['checksum'] = checksum
 
         # Store kwargs for the package to later with a fetch_strategy.
         version = Version(ver)
@@ -344,13 +350,6 @@ def version(ver, checksum=None, **kwargs):
                 msg += ")"
                 raise VersionLookupError(msg)
         pkg.versions[version] = kwargs
-        if 'abi' in kwargs:
-            if 'abi_base' in kwargs:
-                pass
-            else:
-                msg = "Attempted to set an abi base version without setting what"
-                msg += "changed in package {0}"
-                raise DirectiveError(llnl.util.tty.color.colorize(msg.format(pkg.name)))
     return _execute_version
 
 

@@ -96,7 +96,7 @@ class Variant(object):
 
         Args:
             vspec (Variant): instance to be validated
-            pkg_cls (spack.package_base.Package): the package class
+            pkg_cls (spack.package_base.PackageBase): the package class
                 that required the validation, if available
 
         Raises:
@@ -886,7 +886,7 @@ class Value(object):
         return hash(self.value)
 
     def __eq__(self, other):
-        if isinstance(other, six.string_types):
+        if isinstance(other, (six.string_types, bool)):
             return self.value == other
         return self.value == other.value
 

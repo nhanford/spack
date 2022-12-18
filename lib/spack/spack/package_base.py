@@ -451,7 +451,7 @@ def test_log_pathname(test_stage, spec):
     return os.path.join(test_stage, "test-{0}-out.txt".format(TestSuite.test_pkg_id(spec)))
 
 
-class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
+class PackageBase(WindowsRPath, PackageViewMixin, PackageABIMixin, metaclass=PackageMeta):
     """This is the superclass for all spack packages.
 
     ***The Package class***

@@ -73,6 +73,7 @@ class QuantumEspresso(CMakePackage, Package):
         depends_on("amdfftw+openmp", when="^amdfftw")
         depends_on("openblas threads=openmp", when="^openblas")
         depends_on("amdblis threads=openmp", when="^amdblis")
+        depends_on("intel-mkl threads=openmp", when="^intel-mkl")
 
     # Add Cuda Fortran support
     # depends on NVHPC compiler, not directly on CUDA toolkit
@@ -580,8 +581,8 @@ class GenericBuilder(spack.build_systems.generic.GenericBuilder):
                 zlib_libs = spec["zlib"].prefix.lib + " -lz"
                 filter_file(zlib_libs, format(spec["zlib"].libs.ld_flags), make_inc)
 
-        # QE 6.6 and later has parallel builds fixed
-        if spec.satisfies("@:6.5"):
+        # QE 6.8 and later has parallel builds fixed
+        if spec.satisfies("@:6.7"):
             parallel_build_on = False
         else:
             parallel_build_on = True

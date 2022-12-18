@@ -3,13 +3,22 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import platform
-
 import spack.compilers
 from spack.build_environment import dso_suffix
 from spack.package import *
 
-linux_versions = [
+versions = [
+    {
+        "version": "2022.2.1",
+        "cpp": {
+            "url": "https://registrationcenter-download.intel.com/akdlm/irc_nas/19049/l_dpcpp-cpp-compiler_p_2022.2.1.16991_offline.sh",
+            "sha256": "3f0f02f9812a0cdf01922d2df9348910c6a4cb4f9dfe50fc7477a59bbb1f7173",
+        },
+        "ftn": {
+            "url": "https://registrationcenter-download.intel.com/akdlm/irc_nas/18998/l_fortran-compiler_p_2022.2.1.16992_offline.sh",
+            "sha256": "64f1d1efbcdc3ac2182bec18313ca23f800d94f69758db83a1394490d9d4b042",
+        },
+    },
     {
         "version": "2022.2.0",
         "cpp": {
@@ -123,20 +132,23 @@ class IntelOneapiCompilers(IntelOneApiPackage):
                 "%{0}".format(__compiler), msg="intel-oneapi-compilers must be installed with %gcc"
             )
 
-    if platform.system() == "Linux":
-        for v in linux_versions:
-            version(v["version"], expand=False, **v["cpp"])
-            resource(
-                name="fortran-installer",
-                placement="fortran-installer",
-                when="@{0}".format(v["version"]),
-                expand=False,
-                **v["ftn"]
-            )
+    for v in versions:
+        version(v["version"], expand=False, **v["cpp"])
+        resource(
+            name="fortran-installer",
+            placement="fortran-installer",
+            when="@{0}".format(v["version"]),
+            expand=False,
+            **v["ftn"],
+        )
 
     @property
     def component_dir(self):
         return "compiler"
+
+    @property
+    def compiler_search_prefix(self):
+        return self.prefix.compiler.join(str(self.version)).linux.bin
 
     def setup_run_environment(self, env):
         """Adds environment variables to the generated module file.
@@ -158,7 +170,7 @@ class IntelOneapiCompilers(IntelOneApiPackage):
 
     def install(self, spec, prefix):
         # Copy instead of install to speed up debugging
-        # install_tree('/opt/intel/oneapi/compiler', self.prefix)
+        # install_tree("/opt/intel/oneapi/compiler", self.prefix)
 
         # install cpp
         super(IntelOneapiCompilers, self).install(spec, prefix)

@@ -77,6 +77,7 @@ class NetcdfC(AutotoolsPackage):
     variant("jna", default=False, description="Enable JNA support")
     variant("fsync", default=False, description="Enable fsync support")
     variant("zstd", default=True, description="Enable ZStandard compression", when="@4.9.0:")
+    variant("optimize", default=True, description="Enable -O2 for a more optimized lib")
 
     # It's unclear if cdmremote can be enabled if '--enable-netcdf-4' is passed
     # to the configure script. Since netcdf-4 support is mandatory we comment
@@ -96,6 +97,10 @@ class NetcdfC(AutotoolsPackage):
     # http://www.unidata.ucar.edu/software/netcdf/docs/getting_and_building_netcdf.html
     depends_on("curl@7.18.0:", when="+dap")
     # depends_on("curl@7.18.0:", when='+cdmremote')
+
+    # Need to include libxml2 when using DAP in 4.9.0 and newer to build
+    # https://github.com/Unidata/netcdf-c/commit/53464e89635a43b812b5fec5f7abb6ff34b9be63
+    depends_on("libxml2", when="@4.9.0:+dap")
 
     depends_on("parallel-netcdf", when="+parallel-netcdf")
 
@@ -161,6 +166,9 @@ class NetcdfC(AutotoolsPackage):
             "--enable-netcdf-4",
         ]
 
+        if "+optimize" in self.spec:
+            cflags.append("-O2")
+
         config_args.extend(self.enable_or_disable("fsync"))
 
         # The flag was introduced in version 4.3.1
@@ -169,9 +177,7 @@ class NetcdfC(AutotoolsPackage):
 
         config_args += self.enable_or_disable("shared")
 
-        if "~shared" in self.spec or "+pic" in self.spec:
-            # We don't have shared libraries but we still want it to be
-            # possible to use this library in shared builds
+        if "+pic" in self.spec:
             cflags.append(self.compiler.cc_pic_flag)
 
         config_args += self.enable_or_disable("dap")

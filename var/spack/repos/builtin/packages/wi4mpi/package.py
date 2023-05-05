@@ -33,6 +33,7 @@ class Wi4mpi(CMakePackage):
     )
 
     depends_on("mpi", when="@:3.5")
+    depends_on("cmake@3:")
 
     def cmake_args(self):
         if "%gcc" in self.spec:
